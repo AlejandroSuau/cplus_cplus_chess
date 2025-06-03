@@ -31,7 +31,7 @@ void PieceMover::MoveTo(const ColRow& col_row) {
     
     piece_->IncreaseMovementsCount();
     board_.RemovePiece(*piece_);
-    board_.AddPieceTo(*piece_, col_row);
+    board_.AddPieceAt(*piece_, col_row);
 }
 
 void PieceMover::Reset() {

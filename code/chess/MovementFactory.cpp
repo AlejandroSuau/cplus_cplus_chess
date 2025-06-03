@@ -5,32 +5,34 @@
 MovementFactory::MovementFactory(const Board& board) : board_(board) {}
 
 Movements MovementFactory::GetMovements(Piece& piece, const Player& active_player) const {
+    assert(piece.GetPosition() && "Piece has a wrong position");
+    const auto position = piece.GetPosition().value();
+
     switch(piece.GetType()) {
-        case EPieceType::PAWN:   return Pawn(piece, active_player);
-        case EPieceType::ROOK:   return Rook(piece, active_player);
-        case EPieceType::KNIGHT: return Knight(piece, active_player);
-        case EPieceType::BISHOP: return Bishop(piece, active_player);
-        case EPieceType::QUEEN:  return Queen(piece, active_player);
-        case EPieceType::KING:   return King(piece, active_player);
+        case EPieceType::PAWN:   return Pawn(position, active_player, piece.DidAlreadyMove());
+        case EPieceType::ROOK:   return Rook(position, active_player);
+        case EPieceType::KNIGHT: return Knight(position, active_player);
+        case EPieceType::BISHOP: return Bishop(position, active_player);
+        case EPieceType::QUEEN:  return Queen(position, active_player);
+        case EPieceType::KING:   return King(position, active_player);
         default:
             assert(false && "Not handled EPieceType!");
             return {};
     }
 }
 
-Movements MovementFactory::Pawn(Piece& piece, const Player& active_player) const {
+Movements MovementFactory::Pawn(const ColRow& position, const Player& active_player, bool did_already_move) const {
     Movements movements;
     const int dir = active_player.GetDirection();
-    const int max_move_units = (piece.DidAlreadyMove()) ? 1 : 2;
+    const int max_move_units = (did_already_move) ? 1 : 2;
 
     // Forward
-    const auto cr = piece.GetCell()->GetColRow();
     for (int step = 1; step <= max_move_units; ++step) {
         const ColRow forward {
-            cr.x,
-            static_cast<std::size_t>(static_cast<int>(cr.y) + step * dir)};
+            position.x,
+            static_cast<std::size_t>(static_cast<int>(position.y) + step * dir)};
         
-        if (!board_.IsCellInsideBounds((forward)) || board_.GetPiece(forward)) break;
+        if (!board_.IsInsideBounds((forward)) || board_.GetPiece(forward)) break;
         
         movements.push_back(forward);
     }
@@ -38,14 +40,14 @@ Movements MovementFactory::Pawn(Piece& piece, const Player& active_player) const
     // Diagonal
     static const std::array<int, 2> dx {-1, 1};
     for (auto i : dx) {
-        int new_x = static_cast<int>(cr.x) + i;
-        int new_y = static_cast<int>(cr.y) + dir;
+        int new_x = static_cast<int>(position.x) + i;
+        int new_y = static_cast<int>(position.y) + dir;
         if (new_x < 0 || new_y < 0) continue;
 
         const ColRow diag {
             static_cast<std::size_t>(new_x),
             static_cast<std::size_t>(new_y)};
-        if (!board_.IsCellInsideBounds(diag)) continue;
+        if (!board_.IsInsideBounds(diag)) continue;
 
         auto* target = board_.GetPiece(diag);
         if (target && *target->GetPlayer() != active_player) {
@@ -56,24 +58,24 @@ Movements MovementFactory::Pawn(Piece& piece, const Player& active_player) const
     return movements;
 }
 
-Movements MovementFactory::Rook(Piece& piece, const Player& active_player) const {
-    return ExploreDirections(piece.GetCell()->GetColRow(), kDirsRook, active_player);
+Movements MovementFactory::Rook(const ColRow& position, const Player& active_player) const {
+    return ExploreDirections(position, kDirsRook, active_player);
 }
 
-Movements MovementFactory::Knight(Piece& piece, const Player& active_player) const {
-    return ExploreDirections(piece.GetCell()->GetColRow(), kDirsKnight, active_player, true);
+Movements MovementFactory::Knight(const ColRow& position, const Player& active_player) const {
+    return ExploreDirections(position, kDirsKnight, active_player, true);
 }
 
-Movements MovementFactory::Bishop(Piece& piece, const Player& active_player) const {
-    return ExploreDirections(piece.GetCell()->GetColRow(), kDirsBishop, active_player);
+Movements MovementFactory::Bishop(const ColRow& position, const Player& active_player) const {
+    return ExploreDirections(position, kDirsBishop, active_player);
 }
 
-Movements MovementFactory::Queen(Piece& piece, const Player& active_player) const {
-    return ExploreDirections(piece.GetCell()->GetColRow(), kDirsQueen, active_player);
+Movements MovementFactory::Queen(const ColRow& position, const Player& active_player) const {
+    return ExploreDirections(position, kDirsQueen, active_player);
 }
 
-Movements MovementFactory::King(Piece& piece, const Player& active_player) const {
-    return ExploreDirections(piece.GetCell()->GetColRow(), kDirsQueen, active_player, true);
+Movements MovementFactory::King(const ColRow& position, const Player& active_player) const {
+    return ExploreDirections(position, kDirsQueen, active_player, true);
 }
 
 Movements MovementFactory::ExploreDirection(

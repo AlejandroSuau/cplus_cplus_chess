@@ -62,11 +62,13 @@ void ChessGame::Render(Renderer& renderer) {
         SDL_Rect{0, 0, kBoardAssetSizeInt, kBoardAssetSizeInt},
         SDL_FRect{0.f, 0.f, AssetsLoader::kBoardAssetSize.x, AssetsLoader::kBoardAssetSize.y} * kScalingFactor);
 
-    for (auto& c : board_.GetCells()) {
-        const auto* piece = c.GetPiece();
+    const auto& cells = board_.GetCells();
+    for (std::size_t i{}; i < cells.size(); ++i) {
+        const auto* piece = cells[i];
         if (!piece) continue;
-        
-        const auto cell_rect = AssetsLoader::GetCellRect(c.GetColRow());
+
+        const auto cell_col_row = board_.FromIndexToColRow(i);
+        const auto cell_rect = AssetsLoader::GetCellRect(cell_col_row);
         const auto& asset_id = (piece->GetPlayer()->IsPlayerOne()) ? AssetsLoader::kPlayerOnePiecesId : AssetsLoader::kPlayerTwoPiecesId;
         const auto& piece_rect_src = assets_loader_.GetPieceRect(piece->GetType());
         const SDL_FRect piece_rect_dst {

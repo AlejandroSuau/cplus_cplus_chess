@@ -1,11 +1,12 @@
 #pragma once
 
-#include "chess/Cell.hpp"
 #include "chess/Player.hpp"
+#include "chess/Definitions.hpp"
 
 #include <sstream>
 #include <unordered_map>
 #include <string>
+#include <optional>
 
 enum class EPieceType {
     INVALID,
@@ -42,16 +43,16 @@ public:
 
     void SetType(EPieceType type);
     void SetPlayer(Player* player);
-    void SetCell(Cell* cell);
+    void SetPosition(std::optional<ColRow> position);
 
     EPieceType GetType() const;
-    Cell* GetCell();
+    std::optional<ColRow> GetPosition() const;
     Player* GetPlayer();
     const Player* GetPlayer() const;
 
 private:
     EPieceType type_;
-    Cell* cell_{nullptr};
+    std::optional<ColRow> position_{std::nullopt};
     Player* player_{nullptr};
     std::size_t movements_count_{0};
 };

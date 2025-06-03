@@ -7,9 +7,17 @@ Piece::Piece(EPieceType type)
 
 void Piece::Reset() {
     movements_count_ = 0;
-    cell_ = nullptr;
+    position_ = std::nullopt;
     player_ = nullptr;
     type_ = EPieceType::INVALID;
+}
+
+void Piece::SetPosition(std::optional<ColRow> position) {
+    position_ = position;
+}
+
+std::optional<ColRow> Piece::GetPosition() const {
+    return position_;
 }
 
 void Piece::IncreaseMovementsCount() {
@@ -36,16 +44,8 @@ void Piece::SetType(EPieceType type) {
     type_ = type;
 }
 
-void Piece::SetCell(Cell* cell) {
-    cell_ = cell;
-}
-
 EPieceType Piece::GetType() const {
     return type_;
-}
-
-Cell* Piece::GetCell() {
-    return cell_;
 }
 
 Player* Piece::GetPlayer() {
@@ -60,7 +60,9 @@ std::string Piece::Str() const {
     const auto type_it = PieceTypeString.find(type_);
     std::stringstream ss;
     ss << "{" << player_->Str() << " "
-        << type_it->second << " - "
-        << cell_->Str() << "\n}";
+        << type_it->second << " - ";
+    if (position_) {
+        ss << "[" << position_.value().x << "," << position_.value().y << "]" << "\n}";
+    }
     return ss.str();
 }

@@ -25,12 +25,12 @@ private:
     
     const Board& board_;
 
-    Movements Pawn(Piece& piece, const Player& active_player) const;
-    Movements Rook(Piece& piece, const Player& active_player) const;
-    Movements Knight(Piece& piece, const Player& active_playe) const;
-    Movements Bishop(Piece& piece, const Player& active_playe) const;
-    Movements Queen(Piece& piece, const Player& active_player) const;
-    Movements King(Piece& piece, const Player& active_player) const;
+    Movements Pawn(const ColRow& position, const Player& active_player, bool did_already_move) const;
+    Movements Rook(const ColRow& position, const Player& active_player) const;
+    Movements Knight(const ColRow& position, const Player& active_playe) const;
+    Movements Bishop(const ColRow& position, const Player& active_playe) const;
+    Movements Queen(const ColRow& position, const Player& active_player) const;
+    Movements King(const ColRow& position, const Player& active_player) const;
 
     Movements ExploreDirection(
         const ColRow& start,
