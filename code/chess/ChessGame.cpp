@@ -7,7 +7,12 @@ SDL_FRect operator*(const SDL_FRect& rect, float scale) {
 }
 
 ChessGame::ChessGame(TextureManager& texture_manager) 
-    : texture_manager_(texture_manager), assets_loader_(texture_manager_) { Init(); }
+    : texture_manager_(texture_manager)
+    , assets_loader_(texture_manager_)
+    , movement_factory_(board_)
+    , piece_mover_(board_, movement_factory_) {
+    Init();
+}
 
 void ChessGame::Init() {
     piece_manager_.Initialize(board_, turn_manager_);
@@ -36,7 +41,7 @@ void ChessGame::OnClick(float x, float y) {
         auto* piece = board_.GetPiece(col_row);
         if (piece && piece->DoesPlayerOwnThisPiece(turn_manager_.GetActivePlayer())) {
             SDL_Log("Piece selected!: %s", piece->Str().c_str());
-            piece_mover_.ComputePieceMovements(*piece, turn_manager_.GetActivePlayer());
+            piece_mover_.ComputePieceMovements(*piece);
         }
     }
 }

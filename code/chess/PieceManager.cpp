@@ -29,10 +29,10 @@ void PieceManager::Initialize(Board& board, TurnManager& turn_manager) {
     }
 }
 
-Piece& PieceManager::GetKing(const Player& player) {
+const Piece& PieceManager::GetKing(const Player& player) const {
     auto it = std::find_if(
-        all_pieces_.begin(),
-        all_pieces_.end(), [&](const Piece& piece) {
+        all_pieces_.cbegin(),
+        all_pieces_.cend(), [&](const Piece& piece) {
             assert(piece.GetPlayer() && "Piece has no player assigned yet.");
             return (*piece.GetPlayer() == player && piece.IsKing());
         });

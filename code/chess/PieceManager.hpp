@@ -7,7 +7,7 @@ class PieceManager {
 public:
     void Initialize(Board& board, TurnManager& turn_manager);
     
-    Piece& GetKing(const Player& player);
+    const Piece& GetKing(const Player& player) const;
 
 private:
     static constexpr std::size_t kPiecesPerPlayer = 16;

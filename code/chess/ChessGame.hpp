@@ -42,7 +42,8 @@ private:
 
     Board board_;
     PieceManager piece_manager_;
-    PieceMover piece_mover_{board_};
+    MovementFactory movement_factory_;
+    PieceMover piece_mover_;
     TurnManager turn_manager_;
 
     std::optional<ColRow> GetColRowFromClick(float x, float y) const;

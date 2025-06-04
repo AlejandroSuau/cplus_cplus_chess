@@ -4,27 +4,28 @@
 
 MovementFactory::MovementFactory(const Board& board) : board_(board) {}
 
-Movements MovementFactory::GetMovements(Piece& piece, const Player& active_player) const {
+Movements MovementFactory::GetMovements(const Piece& piece) const {
     assert(piece.GetPosition() && "Piece has a wrong position");
-    const auto position = piece.GetPosition().value();
+    assert(piece.GetPlayer() && "Piece has no player assigned");
 
     switch(piece.GetType()) {
-        case EPieceType::PAWN:   return Pawn(position, active_player, piece.DidAlreadyMove());
-        case EPieceType::ROOK:   return Rook(position, active_player);
-        case EPieceType::KNIGHT: return Knight(position, active_player);
-        case EPieceType::BISHOP: return Bishop(position, active_player);
-        case EPieceType::QUEEN:  return Queen(position, active_player);
-        case EPieceType::KING:   return King(position, active_player);
+        case EPieceType::PAWN:   return Pawn(piece);
+        case EPieceType::ROOK:   return ExploreDirections(piece, kDirsRook);
+        case EPieceType::KNIGHT: return ExploreDirections(piece, kDirsKnight, true);
+        case EPieceType::BISHOP: return ExploreDirections(piece, kDirsBishop);
+        case EPieceType::QUEEN:  return ExploreDirections(piece, kDirsQueen);
+        case EPieceType::KING:   return ExploreDirections(piece, kDirsQueen, true);
         default:
             assert(false && "Not handled EPieceType!");
             return {};
     }
 }
 
-Movements MovementFactory::Pawn(const ColRow& position, const Player& active_player, bool did_already_move) const {
+Movements MovementFactory::Pawn(const Piece& piece) const {
     Movements movements;
-    const int dir = active_player.GetDirection();
-    const int max_move_units = (did_already_move) ? 1 : 2;
+    const int dir = piece.GetPlayer()->GetDirection();
+    const int max_move_units = (piece.DidAlreadyMove()) ? 1 : 2;
+    const auto position = piece.GetPosition().value();
 
     // Forward
     for (int step = 1; step <= max_move_units; ++step) {
@@ -50,7 +51,7 @@ Movements MovementFactory::Pawn(const ColRow& position, const Player& active_pla
         if (!board_.IsInsideBounds(diag)) continue;
 
         auto* target = board_.GetPiece(diag);
-        if (target && *target->GetPlayer() != active_player) {
+        if (target && *target->GetPlayer() != *piece.GetPlayer()) {
             movements.push_back(diag);
         }
     }
@@ -58,35 +59,15 @@ Movements MovementFactory::Pawn(const ColRow& position, const Player& active_pla
     return movements;
 }
 
-Movements MovementFactory::Rook(const ColRow& position, const Player& active_player) const {
-    return ExploreDirections(position, kDirsRook, active_player);
-}
-
-Movements MovementFactory::Knight(const ColRow& position, const Player& active_player) const {
-    return ExploreDirections(position, kDirsKnight, active_player, true);
-}
-
-Movements MovementFactory::Bishop(const ColRow& position, const Player& active_player) const {
-    return ExploreDirections(position, kDirsBishop, active_player);
-}
-
-Movements MovementFactory::Queen(const ColRow& position, const Player& active_player) const {
-    return ExploreDirections(position, kDirsQueen, active_player);
-}
-
-Movements MovementFactory::King(const ColRow& position, const Player& active_player) const {
-    return ExploreDirections(position, kDirsQueen, active_player, true);
-}
-
 Movements MovementFactory::ExploreDirection(
-    const ColRow& start, 
+    const Piece& piece,
     const Vec2<int>& dir,
-    const Player& player,
     bool is_doing_single_step) const {
     
+    const auto position = piece.GetPosition().value();
     Movements result;
-    int x = static_cast<int>(start.x) + dir.x;
-    int y = static_cast<int>(start.y) + dir.y;
+    int x = static_cast<int>(position.x) + dir.x;
+    int y = static_cast<int>(position.y) + dir.y;
     while (x >= 0 && y >= 0 && 
             static_cast<std::size_t>(x) < board_.kBoardSize &&
             static_cast<std::size_t>(y) < board_.kBoardSize) {
@@ -95,7 +76,7 @@ Movements MovementFactory::ExploreDirection(
             static_cast<std::size_t>(y)};
         
         auto* cell_piece = board_.GetPiece(target_col_row);
-        if (!cell_piece || *cell_piece->GetPlayer() != player) {
+        if (!cell_piece || *cell_piece->GetPlayer() != *piece.GetPlayer()) {
             result.push_back(target_col_row);
         }
         

@@ -9,7 +9,7 @@
 class MovementFactory {
 public:
     MovementFactory(const Board& board);
-    Movements GetMovements(Piece& piece, const Player& active_player) const;
+    Movements GetMovements(const Piece& piece) const;
 
 private:
     static constexpr std::array<Vec2<int>, 8> kDirsKnight {
@@ -25,29 +25,22 @@ private:
     
     const Board& board_;
 
-    Movements Pawn(const ColRow& position, const Player& active_player, bool did_already_move) const;
-    Movements Rook(const ColRow& position, const Player& active_player) const;
-    Movements Knight(const ColRow& position, const Player& active_playe) const;
-    Movements Bishop(const ColRow& position, const Player& active_playe) const;
-    Movements Queen(const ColRow& position, const Player& active_player) const;
-    Movements King(const ColRow& position, const Player& active_player) const;
+    Movements Pawn(const Piece& piece) const;
 
     Movements ExploreDirection(
-        const ColRow& start,
+        const Piece& piece,
         const Vec2<int>& dir,
-        const Player& player,
         bool is_doing_single_step) const;
 
     template<std::size_t N>
     Movements ExploreDirections(
-        const ColRow& start, 
+        const Piece& piece, 
         const std::array<Vec2<int>, N>& directions,
-        const Player& player,
         bool is_doing_single_step = false) const {
         
         Movements result;
         for (const auto& dir : directions) {
-            auto partial = ExploreDirection(start, dir, player, is_doing_single_step);
+            auto partial = ExploreDirection(piece, dir, is_doing_single_step);
             result.insert(result.end(), partial.begin(), partial.end());
         }
         return result;

@@ -2,12 +2,12 @@
 
 #include <assert.h>
 
-PieceMover::PieceMover(Board& board) 
-    : board_(board), movement_factory_(board), piece_(nullptr) {}
+PieceMover::PieceMover(Board& board, const MovementFactory& movement_factory) 
+    : board_(board), movement_factory_(movement_factory), piece_(nullptr) {}
 
-const Movements& PieceMover::ComputePieceMovements(Piece& piece, const Player& active_player) {
+const Movements& PieceMover::ComputePieceMovements(Piece& piece) {
     piece_ = &piece;
-    movements_ = movement_factory_.GetMovements(piece, active_player);
+    movements_ = movement_factory_.GetMovements(piece);
     return movements_;
 }
 
