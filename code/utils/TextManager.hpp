@@ -11,7 +11,8 @@ public:
     TextManager() = default;
     ~TextManager();
 
-    TTF_Font* LoadFont(const std::string& file_path, int font_size, std::string custom_id = "");
+    TTF_Font* GetFont(const std::string& id);
+    TTF_Font* LoadFont(const std::string& file_path, int font_size, const std::string& custom_id = "");
     void RemoveFont(const std::string& font_id);
 
 private:

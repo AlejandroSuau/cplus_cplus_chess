@@ -15,6 +15,11 @@ public:
     void RemoveTexture(const std::string& id);
 
 private:
+    TextureManager(const TextureManager&) noexcept = delete;
+    TextureManager(TextureManager&&) noexcept = delete;
+    TextureManager& operator=(const TextureManager&) noexcept = delete;
+    TextureManager& operator=(TextureManager&&) noexcept = delete;
+
     SDL_Renderer& renderer_;
     std::unordered_map<std::string, SDL_Texture*> textures_;
 
