@@ -41,10 +41,9 @@ private:
     Renderer renderer_;
     TextureManager texture_manager_;
     TextManager text_manager_;
-    TTF_Font* default_font_;
 
     // Chess
-    ChessGame chess_game_{texture_manager_};
+    ChessGame chess_game_{text_manager_, texture_manager_};
 
     void Init();
 

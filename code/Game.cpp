@@ -20,8 +20,8 @@ Game::Game()
             "Tower Defense",
             SDL_WINDOWPOS_UNDEFINED,
             SDL_WINDOWPOS_UNDEFINED,
-            static_cast<int>(ChessGame::kScreenSize),
-            static_cast<int>(ChessGame::kScreenSize),
+            static_cast<int>(ChessGame::kScreenSize.x),
+            static_cast<int>(ChessGame::kScreenSize.y),
             0),
         SDL_DestroyWindow)
     , sdl_renderer_(
@@ -70,9 +70,7 @@ void Game::Run() {
     }
 }
 
-void Game::Init() {
-    default_font_ = text_manager_.LoadFont("assets/fonts/atari-full.ttf", 12, "default-font-14");
-}
+void Game::Init() {}
 
 void Game::Update(float dt) {}
 
