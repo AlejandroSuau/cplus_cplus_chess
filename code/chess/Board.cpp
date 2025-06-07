@@ -1,6 +1,7 @@
 #include "chess/Board.hpp"
 
 #include <assert.h>
+#include <optional>
 
 Board::Board() {
     Clear();
@@ -22,15 +23,26 @@ bool Board::IsInsideBounds(ColRow col_row) const {
     return (col_row.x < kBoardSize && col_row.y < kBoardSize);
 }
 
-void Board::AddPieceAt(Piece& piece, const ColRow& position) {
-    const auto cell_index = FromColRowToIndex(position);
-    cells_[cell_index] = &piece;
-    piece.SetPosition(position);
+void Board::MoveTo(Piece& piece, const ColRow& destination) {
+    auto previous_piece_pos = piece.GetPosition();
+    if (previous_piece_pos) {
+        const auto previous_cell_index_ = FromColRowToIndex(*previous_piece_pos);    
+        cells_[previous_cell_index_] = nullptr;
+    }
+
+    const auto destination_index = FromColRowToIndex(destination);
+    auto* piece_destination = cells_[destination_index];
+    if (piece_destination) {
+        piece_destination->SetPosition(std::nullopt);
+    }
+
+    cells_[destination_index] = &piece;
+    piece.SetPosition(destination);
 }
 
 void Board::RemovePiece(Piece& piece) {
     const auto piece_pos = piece.GetPosition();
-    assert(piece_pos && "Piece hasn't a correct position");
+    assert(piece_pos && "Piece is not placed in the board");
     const auto cell_index = FromColRowToIndex(piece_pos.value());
     cells_[cell_index] = nullptr;
     piece.SetPosition(std::nullopt);

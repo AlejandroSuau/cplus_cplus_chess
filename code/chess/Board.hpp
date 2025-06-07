@@ -16,7 +16,7 @@ public:
     std::size_t FromColRowToIndex(ColRow col_row) const;
     ColRow FromIndexToColRow(std::size_t index) const;
     bool IsInsideBounds(ColRow col_row) const;
-    void AddPieceAt(Piece& piece, const ColRow& position);
+    void MoveTo(Piece& piece, const ColRow& position);
     void RemovePiece(Piece& piece);
     const Piece* GetPiece(ColRow col_row) const;
     Piece* GetPiece(ColRow col_row);

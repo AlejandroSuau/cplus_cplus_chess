@@ -7,11 +7,10 @@ void PieceManager::Initialize(Board& board, TurnManager& turn_manager) {
     // Player One Pieces.
     for (std::size_t i{}; i < kPiecesPerPlayer; ++i) {
         auto& piece = all_pieces_[i];
-        const auto position = board.FromIndexToColRow(i);
-        piece.SetPosition(position);
         piece.SetPlayer(&turn_manager.GetActivePlayer());
         piece.SetType(GetPieceTypeByIndex(kPiecesPerPlayer - i - 1));
-        board.AddPieceAt(piece, position);
+        const auto position = board.FromIndexToColRow(i);
+        board.MoveTo(piece, position);
     }
 
     // Player Two Pieces.
@@ -20,11 +19,10 @@ void PieceManager::Initialize(Board& board, TurnManager& turn_manager) {
     const std::size_t player_two_starting_index =  cells_size - kPiecesPerPlayer;
     for (std::size_t cell_index{player_two_starting_index}; cell_index < cells_size; ++cell_index) {
         auto& piece = all_pieces_[piece_index];
-        const auto position = board.FromIndexToColRow(cell_index);
-        piece.SetPosition(position);
         piece.SetPlayer(&turn_manager.GetOpponentPlayer());
         piece.SetType(GetPieceTypeByIndex(piece_index % kPiecesPerPlayer));
-        board.AddPieceAt(piece, position);
+        const auto position = board.FromIndexToColRow(cell_index);
+        board.MoveTo(piece, position);
         ++piece_index;
     }
 }
