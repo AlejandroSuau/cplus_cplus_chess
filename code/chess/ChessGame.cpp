@@ -2,19 +2,30 @@
 
 #include "utils/Renderer.hpp"
 
+namespace {
+    static const std::string kFontAtariPath {"assets/fonts/atari-full.ttf"};
+    static const std::string kFontIdBig {"default-font-25"};
+    static const std::string kFontIdSmall {"default-font-12"};
+}
+
 SDL_FRect operator*(const SDL_FRect& rect, float scale) {
     return {rect.x * scale, rect.y * scale, rect.w * scale, rect.h * scale};
 }
 
-ChessGame::ChessGame(TextureManager& texture_manager) 
-    : texture_manager_(texture_manager)
+ChessGame::ChessGame(TextManager& text_manager, TextureManager& texture_manager) 
+    : text_manager_(text_manager)
+    , texture_manager_(texture_manager)
     , assets_loader_(texture_manager_)
     , movement_factory_(board_)
-    , piece_mover_(board_, movement_factory_) {
+    , chess_rules_(board_, movement_factory_, piece_manager_)
+    , displaying_message_{.message = std::string(turn_manager_.GetActivePlayer().GetName()) + "'s Player Turn"} {
     Init();
 }
 
 void ChessGame::Init() {
+    font_big_ = text_manager_.LoadFont(kFontAtariPath, 5 * kScalingFactor, kFontIdBig);
+    font_small_ = text_manager_.LoadFont(kFontAtariPath, 2 * kScalingFactor, kFontIdSmall);
+
     piece_manager_.Initialize(board_, turn_manager_);
 }
 
@@ -28,20 +39,27 @@ void ChessGame::OnClick(float x, float y) {
     
     const auto col_row = col_row_opt.value();
     SDL_Log("Click detected on: [%zu, %zu]; Player: %s", col_row.x, col_row.y, turn_manager_.GetActivePlayer().Str().c_str());
-    if (piece_mover_.DoesHaveMovements()) { // Something selected.
-        if (piece_mover_.DoMovementsContain(col_row)) {
-            assert(piece_mover_.GetPiece() && "There should be an active piece in MovementManager");
-            piece_mover_.MoveTo(col_row);
+    if (selected_piece_) {
+        if (std::find(highlighted_moves_.cbegin(), highlighted_moves_.cend(), col_row) != highlighted_moves_.cend()) {
+            selected_piece_->IncreaseMovementsCount();
+            board_.MoveTo(*selected_piece_, col_row);
             turn_manager_.NextTurn();
             SDL_Log("Swapped active player. Active player is now: %s", turn_manager_.GetActivePlayer().Str().c_str());
+            displaying_message_.message = std::string(turn_manager_.GetActivePlayer().GetName()) + "'s Player Turn";
         }
-        piece_mover_.Reset();
+        selected_piece_ = nullptr;
+        highlighted_moves_.clear();
+
+        if (chess_rules_.IsCheck(turn_manager_.GetActivePlayer())) {
+            displaying_message_.message = "You're in Check!";
+        }
+
     } else {
-        // Nothing previously selected.
         auto* piece = board_.GetPiece(col_row);
         if (piece && piece->DoesPlayerOwnThisPiece(turn_manager_.GetActivePlayer())) {
             SDL_Log("Piece selected!: %s", piece->Str().c_str());
-            piece_mover_.ComputePieceMovements(*piece);
+            selected_piece_ = piece;
+            highlighted_moves_ = chess_rules_.GetLegalMoves(*piece);
         }
     }
 }
@@ -49,23 +67,31 @@ void ChessGame::OnClick(float x, float y) {
 std::optional<ColRow> ChessGame::GetColRowFromClick(float x, float y) const {
     const auto real_x = x / kScalingFactor;
     const auto real_y = y / kScalingFactor;
-    if (real_x < AssetsLoader::kBoardOffset.x || real_x > (AssetsLoader::kBoardOffset.x + AssetsLoader::kBoardDimensions.x) ||
-        real_y < AssetsLoader::kBoardOffset.y || real_y > (AssetsLoader::kBoardOffset.y + AssetsLoader::kBoardDimensions.y)) {
+    if (real_x < (AssetsLoader::kBoardOffset.x + kBoardPosition.x) || real_x > (AssetsLoader::kBoardOffset.x + kBoardPosition.x + AssetsLoader::kBoardDimensions.x) ||
+        real_y < (AssetsLoader::kBoardOffset.y + kBoardPosition.y) || real_y > (AssetsLoader::kBoardOffset.y + kBoardPosition.y + AssetsLoader::kBoardDimensions.y)) {
         return std::nullopt;
     }
 
-    const auto rel_board_x = real_x - AssetsLoader::kBoardOffset.x;
-    const auto rel_board_y = real_y - AssetsLoader::kBoardOffset.y;
+    const auto rel_board_x = real_x - AssetsLoader::kBoardOffset.x - kBoardPosition.x;
+    const auto rel_board_y = real_y - AssetsLoader::kBoardOffset.y - kBoardPosition.y;
     return ColRow{
         static_cast<std::size_t>(rel_board_x / AssetsLoader::kBoardTileSize.x),
         static_cast<std::size_t>(rel_board_y / AssetsLoader::kBoardTileSize.y)};
 }
 
 void ChessGame::Render(Renderer& renderer) {
+    
+    renderer.RenderText(
+        *font_big_, "Chess Game", {255, 255, 255, 255}, kScreenSize.x / 2, kScreenSize.y * 0.05);
+
+    renderer.RenderText(
+        *font_small_, displaying_message_.message, displaying_message_.color, kScreenSize.x / 2, kScreenSize.y * 0.9);
+
+
     renderer.RenderTexture(
         assets_loader_.GetTexture(AssetsLoader::kBoardId),
         SDL_Rect{0, 0, kBoardAssetSizeInt, kBoardAssetSizeInt},
-        SDL_FRect{0.f, 0.f, AssetsLoader::kBoardAssetSize.x, AssetsLoader::kBoardAssetSize.y} * kScalingFactor);
+        SDL_FRect{kBoardPosition.x, kBoardPosition.y, AssetsLoader::kBoardAssetSize.x, AssetsLoader::kBoardAssetSize.y} * kScalingFactor);
 
     const auto& cells = board_.GetCells();
     for (std::size_t i{}; i < cells.size(); ++i) {
@@ -73,7 +99,9 @@ void ChessGame::Render(Renderer& renderer) {
         if (!piece) continue;
 
         const auto cell_col_row = board_.FromIndexToColRow(i);
-        const auto cell_rect = AssetsLoader::GetCellRect(cell_col_row);
+        auto cell_rect = AssetsLoader::GetCellRect(cell_col_row);
+        cell_rect.x += kBoardPosition.x;
+        cell_rect.y += kBoardPosition.y;
         const auto& asset_id = (piece->GetPlayer()->IsPlayerOne()) ? AssetsLoader::kPlayerOnePiecesId : AssetsLoader::kPlayerTwoPiecesId;
         const auto& piece_rect_src = assets_loader_.GetPieceRect(piece->GetType());
         const SDL_FRect piece_rect_dst {
@@ -87,12 +115,13 @@ void ChessGame::Render(Renderer& renderer) {
             piece_rect_dst * kScalingFactor);
     }
 
-    if (piece_mover_.DoesHaveMovements()) {
+    if (!highlighted_moves_.empty()) {
         renderer.SetRenderingColor({0, 255, 0, 35});
-        const auto& active_possibilities = piece_mover_.GetMovements();
-        for (const auto& p : active_possibilities) {
-            const SDL_FRect cell_rect = AssetsLoader::GetCellRect(p) * kScalingFactor;
-            renderer.RenderRectFilled(cell_rect);
+        for (const auto& move : highlighted_moves_) {
+            auto cell_rect = AssetsLoader::GetCellRect(move);
+            cell_rect.x += kBoardPosition.x;
+            cell_rect.y += kBoardPosition.y;
+            renderer.RenderRectFilled(cell_rect * kScalingFactor);
         }
     }
 }

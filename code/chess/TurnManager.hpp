@@ -9,8 +9,8 @@ public:
     Player& GetOpponentPlayer();
 
 private:
-    Player player_one_ {"Player-One", EPlayerType::ONE};
-    Player player_two_ {"Player-Two", EPlayerType::TWO};
+    Player player_one_ {"Black", EPlayerType::ONE};
+    Player player_two_ {"Gray", EPlayerType::TWO};
     EPlayerType current_turn_ {EPlayerType::ONE};
 
     bool IsPlayerOneTurn() const;
