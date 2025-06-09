@@ -15,6 +15,7 @@
 #include "utils/bar/BarLogic.hpp"
 #include "utils/GameTimer.hpp"
 
+#include "chess/Definitions.hpp"
 #include "chess/ChessGame.hpp"
 
 #include <memory>

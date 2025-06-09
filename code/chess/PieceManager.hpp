@@ -5,15 +5,20 @@
 
 class PieceManager {
 public:
+    static constexpr std::size_t kPiecesPerPlayer = 16;
+    static constexpr std::size_t kNumberOfPlayers = 2;
+    using Pieces = std::array<Piece, kPiecesPerPlayer * kNumberOfPlayers>;
+
     void Initialize(Board& board, TurnManager& turn_manager);
     
     const Piece& GetKing(const Player& player) const;
+    Pieces& GetPieces();
+
+    void ResetAllPieces();
 
 private:
-    static constexpr std::size_t kPiecesPerPlayer = 16;
-    static constexpr std::size_t kNumberOfPlayers = 2;
     // Traditional Chess order as default.
-    std::array<Piece, kPiecesPerPlayer * kNumberOfPlayers > all_pieces_;
+    Pieces all_pieces_;
 
     /**
      * Traditional Chess Game Structure

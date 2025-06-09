@@ -1,7 +1,16 @@
 #include "chess/TurnManager.hpp"
 
+#include "chess/Definitions.hpp"
+
+#include <SDL2/SDL_log.h>
+
+void TurnManager::SetCurrentTurnToPlayerOne() {
+    current_turn_ = EPlayerType::ONE;
+}
+
 void TurnManager::NextTurn() {
     current_turn_ = (IsPlayerOneTurn()) ? EPlayerType::TWO : EPlayerType::ONE;
+    SDL_Log(LogMessages::kNextTurn, GetActivePlayer().Str().c_str());
 }
 
 Player& TurnManager::GetActivePlayer() {

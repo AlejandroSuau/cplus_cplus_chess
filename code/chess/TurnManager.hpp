@@ -4,6 +4,7 @@
 
 class TurnManager {
 public:
+    void SetCurrentTurnToPlayerOne();
     void NextTurn();
     Player& GetActivePlayer();
     Player& GetOpponentPlayer();

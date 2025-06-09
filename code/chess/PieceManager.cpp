@@ -27,6 +27,12 @@ void PieceManager::Initialize(Board& board, TurnManager& turn_manager) {
     }
 }
 
+void PieceManager::ResetAllPieces() {
+    for (auto& piece : all_pieces_) {
+        piece.Reset();
+    }
+}
+
 const Piece& PieceManager::GetKing(const Player& player) const {
     auto it = std::find_if(
         all_pieces_.cbegin(),
@@ -53,4 +59,8 @@ EPieceType PieceManager::GetPieceTypeByIndex(std::size_t index) const {
             assert(false && "Invalid index");
             return EPieceType::INVALID;
     }
+}
+
+PieceManager::Pieces& PieceManager::GetPieces() {
+    return all_pieces_;
 }

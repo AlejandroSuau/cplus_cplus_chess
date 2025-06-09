@@ -17,11 +17,11 @@ Game::Game()
     , sdl_mixer_(std::make_unique<SDLMixerInitializer>())
     , window_(
         SDL_CreateWindow(
-            "Tower Defense",
+            "Chess Game",
             SDL_WINDOWPOS_UNDEFINED,
             SDL_WINDOWPOS_UNDEFINED,
-            static_cast<int>(ChessGame::kScreenSize.x),
-            static_cast<int>(ChessGame::kScreenSize.y),
+            static_cast<int>(Config::kScreenSize.x),
+            static_cast<int>(Config::kScreenSize.y),
             0),
         SDL_DestroyWindow)
     , sdl_renderer_(
@@ -98,11 +98,8 @@ void Game::HandleEvents() {
                 static_cast<float>(event.button.y));
         }
 
-        if (event.type == SDL_KEYUP && event.key.keysym.sym == SDLK_SPACE) {
-            
-        }
-        
-        if (event.type == SDL_KEYUP && event.key.keysym.sym == SDLK_r) {
+        if (event.type == SDL_KEYUP) {
+            chess_game_.OnKeyUp(event.key.keysym.sym);
         }
     }
 }

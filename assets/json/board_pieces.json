@@ -1,0 +1,33 @@
+{
+  "pieces": [
+    0, null, null, 3, 4, null, null, null,
+    null, null, null, null, null, null, null, null,
+    null, null, null, null, 60, null, null, null,
+    52, 53, 54, 55, 56, 57, 58, 59
+  ]
+}
+
+  
+  
+/*
+  CHECK FOR PLAYER BLACK
+  {
+    "pieces": [
+      null, null, null, 3, 60, null, null, null,
+      null, null, null, null, null, null, null, null,
+      null, null, null, null, null, null, null, null,
+      28, null, null, null, null, null, null, 7
+    ]
+  }*/
+  
+  /*
+  ONE PREVIOUS TO CHECK
+  {
+    "pieces": [
+      null, null, null, null, 60, null, null, null,
+      null, null, null, null, null, null, null, null,
+      null, null, null, null, null, null, null, null,
+      28, null, null, null, 4, null, null, 7
+    ]
+  }*/
+  

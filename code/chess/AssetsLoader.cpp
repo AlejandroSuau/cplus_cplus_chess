@@ -1,8 +1,6 @@
 #include "chess/AssetsLoader.hpp"
 
-const std::string AssetsLoader::kPlayerOnePiecesId = "Player-One-Pieces";
-const std::string AssetsLoader::kPlayerTwoPiecesId = "Player-Two-Pieces";
-const std::string AssetsLoader::kBoardId = "Board-Perspective";
+#include "chess/Definitions.hpp"
 
 const std::unordered_map<EPieceType, SDL_Rect> AssetsLoader::kPiecesRects {
     {EPieceType::PAWN,   SDL_Rect{1, 32 - 16, 14, 16}},              // 14x16
@@ -19,12 +17,13 @@ AssetsLoader::AssetsLoader(TextureManager& texture_manager)
 }
     
 void AssetsLoader::LoadAssets() {
-    texture_manager_.LoadTexture(
-        "assets/images/chess/BlackPieces-Sheet.png", kPlayerOnePiecesId);
-    texture_manager_.LoadTexture(
-        "assets/images/chess/WhitePieces-Sheet.png", kPlayerTwoPiecesId);
-    texture_manager_.LoadTexture(
-        "assets/images/chess/Board-Perspective.png", kBoardId);
+    texture_manager_.LoadTexture(Assets::kBlackPiecesPath, Assets::kPlayerOnePiecesId);
+    texture_manager_.LoadTexture(Assets::kWhitePiecesPath, Assets::kPlayerTwoPiecesId);
+    texture_manager_.LoadTexture(Assets::kBoardPath, Assets::kBoardId);
+}
+
+SDL_Texture* AssetsLoader::GetPlayerTexture(const Player& player) {
+    return GetTexture(player.IsPlayerOne() ? Assets::kPlayerOnePiecesId : Assets::kPlayerTwoPiecesId);
 }
 
 SDL_Texture* AssetsLoader::GetTexture(const std::string& id) {
@@ -39,8 +38,8 @@ const SDL_Rect& AssetsLoader::GetPieceRect(EPieceType type) const {
 
 SDL_FRect AssetsLoader::GetCellRect(ColRow col_row) {
     return {
-        kBoardOffset.x + col_row.x * kBoardTileSize.x,
-        kBoardOffset.y + col_row.y * kBoardTileSize.y,
-        kBoardTileSize.x,
-        kBoardTileSize.y};
+        Assets::kBoardOffset.x + col_row.x * Assets::kBoardTileSize.x,
+        Assets::kBoardOffset.y + col_row.y * Assets::kBoardTileSize.y,
+        Assets::kBoardTileSize.x,
+        Assets::kBoardTileSize.y};
 }
