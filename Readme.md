@@ -1,4 +1,6 @@
-# TowerDefense - C++ and SDL
+# Chess Game - C++ and SDL
+
+<img src="./demo/starting.png" width="350"> <img src="./demo/check.png" width="350">
 
 ## Technology
 Compilation:

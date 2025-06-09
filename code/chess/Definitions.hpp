@@ -59,6 +59,7 @@ static constexpr const char* kPieceSelected = "Selected piece: %s";
 static constexpr const char* kPlayerTurn = "{}'s Player Turn";
 static constexpr const char* kCheckWarning = "You're in check! Move!";
 static constexpr const char* kCheckmateWarning = "You're in checkmate! GG. Press 'R' to reset";
+static constexpr const char* kStalemateWarning = "You're in stalemate! Press 'R' to reset";
 }
 
 constexpr std::optional<ColRow> FromRealClickToBoardColRow(float x, float y) {

@@ -37,6 +37,9 @@ void GameController::TryToMoveSelectedPiece(const ColRow& destination) {
         if (chess_rules_.IsCheckmate(active_player)) {
             current_message_ = LogMessages::kCheckmateWarning;
             did_game_end_ = true;
+        }  else if (chess_rules_.IsStalemate(active_player)) {
+            current_message_ = LogMessages::kStalemateWarning;
+            did_game_end_ = true;
         } else if (chess_rules_.IsCheck(active_player)) {
             current_message_ = LogMessages::kCheckWarning;
         } else {
