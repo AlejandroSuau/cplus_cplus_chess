@@ -4,108 +4,103 @@ PROJECT(ChessGame)
 
 SET(CMAKE_CXX_STANDARD 20)
 SET(CMAKE_CXX_STANDARD_REQUIRED ON)
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20")
-
-IF (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Darwin")
-    SET(SDL2_LIB_DIR ${CMAKE_SOURCE_DIR}/lib/SDL2/macos_arm64)
-    SET(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH};${SDL2_LIB_DIR}/sdl2/2.30.9/lib/cmake/SDL2")
-    SET(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH};${SDL2_LIB_DIR}/sdl2_image/2.8.2_2/lib/cmake/SDL2_image")
-    SET(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH};${SDL2_LIB_DIR}/sdl2_mixer/2.8.0/lib/cmake/SDL2_mixer")
-    SET(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH};${SDL2_LIB_DIR}/sdl2_ttf/2.22.0/lib/cmake/SDL2_ttf")
-
-    find_package(SDL2 REQUIRED)
-    find_package(SDL2_image REQUIRED)
-    find_package(SDL2_mixer REQUIRED)
-    find_package(SDL2_ttf REQUIRED)
-
-ELSEIF(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
-    # Compiler GCC
-    SET(CMAKE_CXX_COMPILER "C:/msys64/mingw64/bin/g++")
-    SET(CMAKE_C_COMPILER "C:/msys64/mingw64/bin/gcc")
-
-    SET(SDL2_LIB_DIR ${CMAKE_SOURCE_DIR}/lib/SDL2/windows)
-    SET(SDL2_LIBRARY ${SDL2_LIB_DIR}/SDL2.lib)
-    SET(SDL2_IMAGE_LIBRARY ${SDL2_LIB_DIR}/SDL2_image.lib)
-    SET(SDL2_TTF_LIBRARY ${SDL2_LIB_DIR}/SDL2_ttf.lib)
-    SET(SDL2_MIXER_LIBRARY ${SDL2_LIB_DIR}/SDL2_mixer.lib)
-    SET(SDL2_MAIN_LIBRARY ${SDL2_LIB_DIR}/SDL2main.lib)
-ELSE()
-    MESSAGE(FATAL_ERROR "Unsupported platform: ${CMAKE_HOST_SYSTEM_NAME}")
-ENDIF()
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")  # Flag -g para depuración
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
 endif()
 
-# Modules, Source and Executable
-SET(SOURCE_DIR "${CMAKE_SOURCE_DIR}/code")
-FILE(GLOB_RECURSE MODULES_SOURCES ${SOURCE_DIR}/*.cppm ${SOURCE_DIR}/*.cpp)
-SET(SOURCES ${MODULES_SOURCES} "${CMAKE_SOURCE_DIR}/main.cpp")
-ADD_EXECUTABLE(${PROJECT_NAME} ${SOURCES})
+include(FetchContent)
 
-# Include Lib headers (Like SDL)
-TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/lib/SDL2/include)
-TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/lib)
-TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/code)
+# Fetch SDL2
+FetchContent_Declare(
+    SDL2
+    GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
+    GIT_TAG release-2.30.3 # O la versión que prefieras
+)
+FetchContent_MakeAvailable(SDL2)
 
-ADD_SUBDIRECTORY(lib/nlohmann_json)
-SET(JSON_LIB "nlohmann_json::nlohmann_json")
+# Fetch SDL2_image
+FetchContent_Declare(
+    SDL2_image
+    GIT_REPOSITORY https://github.com/libsdl-org/SDL_image.git
+    GIT_TAG release-2.8.2
+)
+FetchContent_MakeAvailable(SDL2_image)
 
-# Resources for copying them into Binary DIR
-SET(ASSETS_SOURCE_DIR "${CMAKE_SOURCE_DIR}/assets")
-SET(ASSETS_DEST_DIR "${CMAKE_BINARY_DIR}/assets")
-ADD_CUSTOM_COMMAND(
+# Fetch SDL2_mixer
+FetchContent_Declare(
+    SDL2_mixer
+    GIT_REPOSITORY https://github.com/libsdl-org/SDL_mixer.git
+    GIT_TAG release-2.8.0
+)
+### Otherwise you can install those.
+set(SDL2MIXER_VENDORED ON)
+set(SDL2MIXER_OPUS OFF)
+FetchContent_MakeAvailable(SDL2_mixer)
+
+# Fetch SDL2_ttf
+FetchContent_Declare(
+    SDL2_ttf
+    GIT_REPOSITORY https://github.com/libsdl-org/SDL_ttf.git
+    GIT_TAG release-2.22.0
+)
+FetchContent_MakeAvailable(SDL2_ttf)
+
+# Fetch nlohmann_json
+FetchContent_Declare(
+    nlohmann_json
+    GIT_REPOSITORY https://github.com/nlohmann/json.git
+    GIT_TAG v3.11.3
+)
+FetchContent_MakeAvailable(nlohmann_json)
+
+# Source files
+set(SOURCE_DIR "${CMAKE_SOURCE_DIR}/code")
+file(GLOB_RECURSE MODULES_SOURCES ${SOURCE_DIR}/*.cppm ${SOURCE_DIR}/*.cpp)
+set(SOURCES ${MODULES_SOURCES} "${CMAKE_SOURCE_DIR}/main.cpp")
+
+add_executable(${PROJECT_NAME} ${SOURCES})
+
+target_include_directories(${PROJECT_NAME} PRIVATE
+    ${CMAKE_SOURCE_DIR}/code
+)
+
+target_link_libraries(${PROJECT_NAME}
+    PRIVATE
+    SDL2::SDL2
+    SDL2_image::SDL2_image
+    SDL2_mixer::SDL2_mixer
+    SDL2_ttf::SDL2_ttf
+    nlohmann_json::nlohmann_json
+)
+
+# macOS specific frameworks
+if (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Darwin")
+target_link_libraries(${PROJECT_NAME}
+    PRIVATE
+    "-framework Cocoa"
+    "-framework IOKit"
+    "-framework CoreFoundation"
+    "-framework CoreVideo"
+    "-framework AudioToolbox"
+    "-framework CoreAudio"
+    "-framework AVFoundation"
+    "-framework GameController"
+    "-framework Metal"
+    "-framework Foundation"
+    "-framework ForceFeedback"
+    "-framework CoreHaptics"
+    "-framework Carbon"
+)
+endif()
+
+# Assets (copy to build directory)
+set(ASSETS_SOURCE_DIR "${CMAKE_SOURCE_DIR}/assets")
+set(ASSETS_DEST_DIR "${CMAKE_BINARY_DIR}/assets")
+add_custom_command(
     TARGET ${PROJECT_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
     ${ASSETS_SOURCE_DIR} ${ASSETS_DEST_DIR}
 )
 
-# Windows needs DLL files to be in the Binary DIR
-IF(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
-    FOREACH(DLL_FILENAME SDL2.dll SDL2_image.dll SDL2_ttf.dll SDL2_mixer.dll)
-    ADD_CUSTOM_COMMAND(
-        TARGET ${PROJECT_NAME} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "${SDL2_LIB_DIR}/${DLL_FILENAME}"
-        $<TARGET_FILE_DIR:${PROJECT_NAME}>
-    )
-    ENDFOREACH()
-ENDIF()
-
-TARGET_LINK_LIBRARIES(${PROJECT_NAME} PRIVATE ${JSON_LIB})
-
-IF (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Darwin")
-    SET(MACOS_FRAMEWORKS 
-        "-framework Cocoa" 
-        "-framework IOKit" 
-        "-framework CoreFoundation" 
-        "-framework CoreVideo"
-        "-framework AudioToolbox"
-        "-framework CoreAudio"
-        "-framework AVFoundation"
-        "-framework GameController"
-        "-framework Metal"
-        "-framework Foundation"
-        "-framework ForceFeedback"
-        "-framework CoreHaptics"
-        "-framework Carbon")
-    TARGET_LINK_LIBRARIES(
-        ${PROJECT_NAME}
-        PRIVATE
-        SDL2::SDL2
-        SDL2_image::SDL2_image
-        SDL2_mixer::SDL2_mixer
-        SDL2_ttf::SDL2_ttf
-        ${MACOS_FRAMEWORKS})
-ELSEIF(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
-    TARGET_LINK_LIBRARIES(
-        ${PROJECT_NAME}
-        PRIVATE
-        ${SDL2_MAIN_LIBRARY}
-        ${SDL2_LIBRARY}
-        ${SDL2_IMAGE_LIBRARY}
-        ${SDL2_TTF_LIBRARY}
-        ${SDL2_MIXER_LIBRARY})
-ENDIF()
-
-MESSAGE(STATUS "C++ standard set to: ${CMAKE_CXX_STANDARD}")
+message(STATUS "C++ standard set to: ${CMAKE_CXX_STANDARD}")

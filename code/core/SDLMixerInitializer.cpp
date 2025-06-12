@@ -1,7 +1,7 @@
 #include "core/SDLMixerInitializer.hpp"
 
 #include <SDL2/SDL.h>
-#include <SDL2/SDL_mixer.h>
+#include <SDL_mixer.h>
 
 #include <stdexcept>
 
